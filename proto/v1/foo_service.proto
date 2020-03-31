@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "github.com/gofc/grpc-micro/proto/pb";
+
+import "proto/v1/pbcomm/messages.proto";
+
+service FooService {
+    rpc Hello (pbcomm.HelloRequest) returns (pbcomm.HelloResponse) {
+    }
+}

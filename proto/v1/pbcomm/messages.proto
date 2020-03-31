@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package pbcomm;
+option go_package = "github.com/gofc/grpc-micro/proto/v1/pbcomm";
+
+message HelloRequest {
+    string name = 1;
+}
+
+message HelloResponse {
+    string msg = 1;
+}
