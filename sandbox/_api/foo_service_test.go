@@ -10,7 +10,7 @@ import (
 )
 
 func TestFooService_Hello(t *testing.T) {
-	conn, err := grpc.DialContext(context.Background(), "localhost:50000", grpc.WithInsecure())
+	conn, err := grpc.DialContext(context.Background(), "localhost:50001", grpc.WithInsecure())
 	if err != nil {
 		t.Fatal(err)
 	}
