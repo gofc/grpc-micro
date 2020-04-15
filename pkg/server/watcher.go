@@ -2,67 +2,94 @@ package server
 
 import (
 	"fmt"
-	etcd3 "github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"golang.org/x/net/context"
-	"google.golang.org/grpc/naming"
+	"google.golang.org/grpc/resolver"
+	"strings"
 )
 
-// watcher is the implementaion of grpc.naming.Watcher
-type watcher struct {
-	re            *resolver // re: Etcd Resolver
-	client        etcd3.Client
-	isInitialized bool
+type Watcher struct {
+	target  string
+	cli     *clientv3.Client
+	builder *ResolverBuilder
 }
 
-// Close do nothing
-func (w *watcher) Close() {
+func NewWatcher(target string, builder *ResolverBuilder) (*Watcher, error) {
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints: strings.Split(target, ","),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &Watcher{cli: cli, builder: builder}, nil
 }
 
-// Next to return the updates
-func (w *watcher) Next() ([]*naming.Update, error) {
-	// prefix is the etcd prefix/value to watch
-	prefix := fmt.Sprintf("/%s/%s/", Prefix, w.re.serviceName)
-	// check if is initialized
-	if !w.isInitialized {
-		// query addresses from etcd
-		resp, err := w.client.Get(context.Background(), prefix, etcd3.WithPrefix())
-		w.isInitialized = true
-		if err == nil {
-			addrs := extractAddrs(resp)
-			//if not empty, return the updates or watcher new dir
-			if l := len(addrs); l != 0 {
-				updates := make([]*naming.Update, l)
-				for i := range addrs {
-					updates[i] = &naming.Update{Op: naming.Add, Addr: addrs[i]}
-				}
-				return updates, nil
+func (r *Watcher) Watch() {
+	addrDict := make(map[string]map[string]resolver.Address)
+
+	update := func() {
+		for k, v := range addrDict {
+			addrList := make([]resolver.Address, 0, len(v))
+			for _, address := range v {
+				fmt.Println("address", address.Addr)
+				addrList = append(addrList, address)
 			}
+			fmt.Println("update", addrList, len(v))
+			r.builder.hosts[k] = addrList
+			fmt.Println("k", k)
+			fmt.Println("r.builder.resolvers[k]", r.builder.resolvers[k])
+			fmt.Println("r.builder.resolvers[k]", r.builder.resolvers[k].cc)
+			r.builder.resolvers[k].cc.NewAddress(addrList)
 		}
 	}
-	// generate etcd Watcher
-	rch := w.client.Watch(context.Background(), prefix, etcd3.WithPrefix())
-	for wresp := range rch {
-		for _, ev := range wresp.Events {
+
+	fmt.Println("call etcd", r.target)
+	resp, err := r.cli.Get(context.Background(), "/"+Prefix, clientv3.WithPrefix())
+	fmt.Println(resp, err)
+	fmt.Println(resp.Kvs)
+	if err == nil {
+		for _, v := range resp.Kvs {
+			key := string(v.Key)
+			fmt.Println("key", key)
+			arr := strings.Split(key, "/")
+			fmt.Println(arr, len(arr))
+			addresses, ok := addrDict[arr[2]]
+			if !ok {
+				addresses = make(map[string]resolver.Address)
+				addrDict[arr[2]] = addresses
+			}
+			addresses[string(v.Value)] = resolver.Address{Addr: string(v.Value)}
+		}
+	}
+
+	update()
+
+	rch := r.cli.Watch(context.Background(), "/"+Prefix, clientv3.WithPrefix(), clientv3.WithPrevKV())
+	for n := range rch {
+		fmt.Println(n)
+		for _, ev := range n.Events {
+			fmt.Println("ev", ev.Kv.Key)
 			switch ev.Type {
 			case mvccpb.PUT:
-				return []*naming.Update{{Op: naming.Add, Addr: string(ev.Kv.Value)}}, nil
+				key := string(ev.Kv.Key)
+				arr := strings.Split(key, "/")
+				fmt.Println(arr, len(arr))
+				addresses, ok := addrDict[arr[2]]
+				if !ok {
+					addresses = make(map[string]resolver.Address)
+					addrDict[arr[2]] = addresses
+				}
+				addresses[string(ev.Kv.Value)] = resolver.Address{Addr: string(ev.Kv.Value)}
 			case mvccpb.DELETE:
-				return []*naming.Update{{Op: naming.Delete, Addr: string(ev.Kv.Value)}}, nil
+				key := string(ev.PrevKv.Key)
+				arr := strings.Split(key, "/")
+				fmt.Println(arr, len(arr))
+				addresses := addrDict[arr[2]]
+				delete(addresses, arr[2])
 			}
 		}
+		update()
 	}
-	return nil, nil
-}
-func extractAddrs(resp *etcd3.GetResponse) []string {
-	addrs := []string{}
-	if resp == nil || resp.Kvs == nil {
-		return addrs
-	}
-	for i := range resp.Kvs {
-		if v := resp.Kvs[i].Value; v != nil {
-			addrs = append(addrs, string(v))
-		}
-	}
-	return addrs
 }

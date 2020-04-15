@@ -4,8 +4,13 @@ import (
 	"fmt"
 	etcd3 "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/etcdserver/api/v3rpc/rpctypes"
+	"github.com/gofc/grpc-micro/pkg/logger"
+	"github.com/gofc/grpc-micro/pkg/scode"
+	"github.com/gofc/grpc-micro/pkg/util/addr"
+	"github.com/pkg/errors"
+	"go.uber.org/zap"
 	"golang.org/x/net/context"
-	"log"
+	"net"
 	"strings"
 	"time"
 )
@@ -17,37 +22,57 @@ var serviceKey string
 var stopSignal = make(chan bool, 1)
 
 // Register
-func Register(name string, host string, port int, target string, interval time.Duration, ttl int) error {
-	serviceValue := fmt.Sprintf("%s:%d", host, port)
-	serviceKey = fmt.Sprintf("/%s/%s/%s", Prefix, name, serviceValue)
-	// get endpoints for register dial address
+func Register(serviceCode scode.ServiceCode, address string, registryAddress string) error {
+	name := serviceCode.Name()
 	var err error
+	var host, port string
+
+	if cnt := strings.Count(address, ":"); cnt >= 1 {
+		// ipv6 address in format [host]:port or ipv4 host:port
+		host, port, err = net.SplitHostPort(address)
+		if err != nil {
+			return err
+		}
+	} else {
+		host = address
+	}
+	ipAddr, err := addr.Extract(host)
+	if err != nil {
+		return err
+	}
+
+	serviceValue := fmt.Sprintf("%s:%s", ipAddr, port)
+	serviceKey = fmt.Sprintf("/%s/%s/%s", Prefix, name, serviceValue)
+
+	logger.Debugf("register server, key:%v, value:%v", serviceKey, serviceValue)
+
+	// get endpoints for register dial address
 	client, err := etcd3.New(etcd3.Config{
-		Endpoints: strings.Split(target, ","),
+		Endpoints: strings.Split(registryAddress, ","),
 	})
 	if err != nil {
-		return fmt.Errorf("grpclb: create etcd3 client failed: %v", err)
+		return errors.Wrap(err, "create etcd3 client failed")
 	}
 	go func() {
 		// invoke self-register with ticker
-		ticker := time.NewTicker(interval)
+		ticker := time.NewTicker(time.Second * 10)
 		for {
 			// minimum lease TTL is ttl-second
-			resp, _ := client.Grant(context.TODO(), int64(ttl))
+			resp, _ := client.Grant(context.TODO(), 15)
 			// should get first, if not exist, set it
 			_, err := client.Get(context.Background(), serviceKey)
 			if err != nil {
 				if err == rpctypes.ErrKeyNotFound {
 					if _, err := client.Put(context.TODO(), serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
-						log.Printf("grpclb: set service '%s' with ttl to etcd3 failed: %s", name, err.Error())
+						logger.Error("failed to set service ttl", zap.String("name", name), zap.Error(err))
 					}
 				} else {
-					log.Printf("grpclb: service '%s' connect to etcd3 failed: %s", name, err.Error())
+					logger.Error("failed to connect registry server", zap.String("name", name), zap.Error(err))
 				}
 			} else {
 				// refresh set to true for not notifying the watcher
 				if _, err := client.Put(context.Background(), serviceKey, serviceValue, etcd3.WithLease(resp.ID)); err != nil {
-					log.Printf("grpclb: refresh service '%s' with ttl to etcd3 failed: %s", name, err.Error())
+					logger.Error("failed to refresh service ttl", zap.String("name", name), zap.Error(err))
 				}
 			}
 			select {
@@ -66,9 +91,9 @@ func UnRegister() error {
 	stopSignal = make(chan bool, 1) // just a hack to avoid multi UnRegister deadlock
 	var err error
 	if _, err := client.Delete(context.Background(), serviceKey); err != nil {
-		log.Printf("grpclb: deregister '%s' failed: %s", serviceKey, err.Error())
+		logger.Error("failed to deregister", zap.String("serviceKey", serviceKey), zap.Error(err))
 	} else {
-		log.Printf("grpclb: deregister '%s' ok.", serviceKey)
+		logger.CInfo(context.Background(), "deregister finished", zap.String("serviceKey", serviceKey))
 	}
 	return err
 }

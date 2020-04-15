@@ -1,6 +1,6 @@
 GO_PATH=`go env GOPATH`
 available_gateways=" "
-available_apps=" foo "
+available_apps=" foo cli "
 current_dir = $(shell pwd)
 
 deps:

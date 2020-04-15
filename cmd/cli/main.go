@@ -1,9 +1,9 @@
-package _api
+package main
 
 import (
 	"context"
+	"flag"
 	"fmt"
-	"github.com/coreos/etcd/clientv3"
 	"github.com/gofc/grpc-micro/pkg/scode"
 	"github.com/gofc/grpc-micro/pkg/server"
 	pb "github.com/gofc/grpc-micro/proto/v1"
@@ -12,15 +12,20 @@ import (
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/resolver"
 	"strconv"
-	"strings"
-	"testing"
 	"time"
 )
 
-func TestFooService_Hello(t *testing.T) {
+var (
+	registryAddress = flag.String("registry_address", "localhost:2379", "registry address")
+)
+
+func main() {
+	flag.Parse()
+
 	r := server.NewResolverBuilder()
 	resolver.Register(r)
-	watcher, err := server.NewWatcher("localhost:2379")
+	fmt.Println("registry_address", *registryAddress)
+	watcher, err := server.NewWatcher(*registryAddress, r)
 	if err != nil {
 		panic(err)
 	}
@@ -28,7 +33,7 @@ func TestFooService_Hello(t *testing.T) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 
-	conn, err := grpc.DialContext(ctx, "etcd3_naming://authority/"+scode.FOO.Name(),
+	conn, err := grpc.DialContext(ctx, r.Scheme()+"://authority/"+scode.FOO.Name(),
 		grpc.WithInsecure(),
 		grpc.WithBalancerName(roundrobin.Name))
 	cancel()
@@ -49,14 +54,4 @@ func TestFooService_Hello(t *testing.T) {
 		fmt.Println(err)
 		fmt.Println(res)
 	}
-}
-
-func TestETCD(t *testing.T) {
-	cli, err := clientv3.New(clientv3.Config{
-		Endpoints: strings.Split("localhost:2379", ","),
-	})
-	fmt.Println(err)
-	res, err := cli.Get(context.Background(), "/etcd3_naming", clientv3.WithPrefix())
-	fmt.Println(res, err)
-	fmt.Println(res.Kvs)
 }
