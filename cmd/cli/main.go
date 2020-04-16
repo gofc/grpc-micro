@@ -40,18 +40,17 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	client := pb.NewFooServiceClient(conn)
 
 	ticker := time.NewTicker(1000 * time.Millisecond)
 	for c := range ticker.C {
-		fmt.Println("asdfasdf1")
-
-		client := pb.NewFooServiceClient(conn)
-		fmt.Println("asdfasdf2")
 		res, err := client.Hello(context.Background(), &pbcomm.HelloRequest{
 			Name: "gofc" + strconv.Itoa(c.Second()),
 		})
-		fmt.Println("asdfasdf3")
-		fmt.Println(err)
-		fmt.Println(res)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println(res)
+		}
 	}
 }
