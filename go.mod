@@ -18,6 +18,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.14.3 // indirect
+	github.com/jinzhu/configor v1.1.1
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
 	github.com/pkg/errors v0.8.1

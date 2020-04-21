@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	prefix = "/micro/registry/"
+	prefix = "/grpc-micro/registry/"
 )
 
 type etcdRegistry struct {

@@ -1,0 +1,8 @@
+server:
+  address: :0
+registry:
+  type: etcd
+  address: etcd_master:2379
+logger:
+  level: debug
+  format: text

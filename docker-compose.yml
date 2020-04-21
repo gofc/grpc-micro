@@ -7,7 +7,7 @@ services:
       - ALLOW_NONE_AUTHENTICATION=yes
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd_master:2379
     ports:
-      - 2379:2379
+      - 12379:2379
   foo1:
     image: alpine:3.2
     entrypoint: ["/app/main","--registry_address","etcd_master:2379"]

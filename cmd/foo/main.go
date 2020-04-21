@@ -8,22 +8,41 @@ import (
 	"github.com/gofc/grpc-micro/pkg/scode"
 	"github.com/gofc/grpc-micro/pkg/server"
 	pb "github.com/gofc/grpc-micro/proto/v1"
+	"github.com/jinzhu/configor"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 )
 
 var (
-	address         = flag.String("address", ":0", "listening host")
-	registry        = flag.String("registry", "etcd", "registry type")
-	registryAddress = flag.String("registry_address", "localhost:2379", "registry address")
+	envName    = flag.String("env", "local", "environment name")
+	configPath = flag.String("conf", "etcd", "the folder path of config files")
 )
 
-func main() {
+func init() {
 	flag.Parse()
+
+	code := scode.FOO
+	var filePath string
+	if *configPath == "" {
+		filePath = filepath.Clean(
+			filepath.Join("../configs/app", *envName, code.Name()+".yml"),
+		)
+	} else {
+		filePath = filepath.Clean(
+			filepath.Join(*configPath, *envName, code.Name()+".yml"),
+		)
+	}
+	if err := configor.Load(conf, filePath); err != nil {
+		panic(err)
+	}
+}
+
+func main() {
 
 	logger.InitLogger(&logger.Config{
 		Level:  "debug",
