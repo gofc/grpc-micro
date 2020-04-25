@@ -3,9 +3,14 @@ syntax = "proto3";
 package pb;
 option go_package = "github.com/gofc/grpc-micro/proto/v1/pbadmin";
 
+import "google/api/annotations.proto";
+
 import "proto/v1/pbcomm/messages.proto";
 
 service AdminService {
     rpc Hello (pbcomm.HelloRequest) returns (pbcomm.HelloResponse) {
+        option (google.api.http) = {
+          get: "/v1/admin/hello"
+        };
     }
 }

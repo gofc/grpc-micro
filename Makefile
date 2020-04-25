@@ -1,7 +1,11 @@
 GO_PATH=`go env GOPATH`
-available_gateways=" "
-available_apps=" foo cli "
-current_dir = $(shell pwd)
+
+install:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${GO_PATH}/bin v1.25.0
+	GO111MODULE=off go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+	GO111MODULE=off go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+	GO111MODULE=off go get -u github.com/golang/protobuf/protoc-gen-go
+	GO111MODULE=off go get -u golang.org/x/tools/cmd/stringer
 
 deps:
 	go mod tidy
@@ -10,9 +14,18 @@ gen: gen-proto
 	@echo "generate all done"
 
 gen-proto:
-	@protoc --go_out=plugins=grpc,paths=source_relative:. ./proto/v1/pbcomm/*.proto
-	@protoc --go_out=plugins=grpc,paths=source_relative:. ./proto/v1/*.proto
-	@protoc --go_out=plugins=grpc,paths=source_relative:. ./proto/v1/pbadmin/*.proto
+	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+    		--go_out=plugins=grpc,paths=source_relative:. \
+    		--swagger_out=logtostderr=true,json_names_for_fields=true:. \
+    		--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbcomm/*.proto
+	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+			--go_out=plugins=grpc,paths=source_relative:. \
+			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
+			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/*.proto
+	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+			--go_out=plugins=grpc,paths=source_relative:. \
+			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
+			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbadmin/*.proto
 	@echo "proto generate done"
 
 build-app:
@@ -20,20 +33,17 @@ build-app:
 	@./scripts/build-all.sh
 
 build-app-specify:
-ifeq ($(filter $(name),$(available_apps)),$(name))
-	@GOOS=linux go build -i -o build/bin/${name} cmd/${name}/main.go
-	@echo "service $(name) build success"
-else ifeq ($(filter $(name),$(available_gateways)),$(name))
-	@GOOS=linux go build -i -o build/bin/${name} cmd/${name}/main.go
-	@GOOS=linux go build -i -o build/bin/${name}_proxy cmd/${name}/proxy/proxy.go
-	@echo "gateway service $(name) build success"
-else
-	@echo "invalid app name"
-endif
+	@echo "build $(name) service"
+	@GOOS=linux go build -i -o build/bin/$(name) cmd/$(name)/main.go
 
 build-image:
-	docker build -t jmz331/global-images:grpc-micro-foo-latest -f docker-files/foo.Dockerfile .
+	$(call build-docker-image,foo)
+	$(call build-docker-image,restgw)
 
 run-all: build-app
 	docker-compose down -v
 	docker-compose up
+
+define build-docker-image
+	docker build -t gofc/images:grpc-micro-$(1)-latest -f docker-files/$(1).Dockerfile .
+endef

@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-restgw
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app-restgw
+  template:
+    metadata:
+      annotations:
+        ad.datadoghq.com/app-restgw.logs: '[{"source":"app-restgw","service":"app-restgw"}]'
+      labels:
+        app: app-restgw
+    spec:
+      serviceAccountName: svca-restgw
+      containers:
+        - name: app-restgw
+          image: gofc/images:grpc-micro-restgw-latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 31000
+          volumeMounts:
+            - name: app-restgw-config
+              mountPath: /app/env/k8s
+      volumes:
+        - name: app-restgw-config
+          configMap:
+            name: app-restgw-config-map

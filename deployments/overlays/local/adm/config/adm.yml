@@ -1,0 +1,87 @@
+server:
+  payload_log: true
+logger:
+  format: json # json or text
+  level: debug
+localizer:
+  message_file_dir: /app/tomls/
+language:
+  default: en
+common.database:
+  host: db-common
+  port: 5432
+  db_name: common
+  user: common
+  password: password
+  ssl_mode: disable
+  pool:
+    max_open_conn: 15
+    max_idle_conn: 1
+  log: false
+token:
+  secret: k^Cc#*mdnS9$nTOY6S1#1i7^e*o1ijSl
+  exp: 30m
+  refresh_exp: 720h
+bank:
+  use_mock: true
+  auth_url: https://stg-api.gmo-aozora.com/ganb/api/auth/v1
+  corporate_url: https://stg-api.gmo-aozora.com/ganb/api/corporation/v1
+  webhook_url: https://stg-api.gmo-aozora.com/ganb/api/webhooks/v1
+  client_id: Cm8jRaKq8EnoszIz
+  client_secret: 5hC9hUXZlGDs8E76LoZhpiGm2zanfPDGR3LOd4TYbPqMRNo8Wy
+  account_id: 101011002449
+  segregated_account:
+    bank_code: 001
+    bank_name_kana: ミツビシUFJ
+    bank_branch_code: 002
+    bank_branch_name: 東京支店
+    bank_branch_name_kana: トウキョウシテン
+    bank_account_type: 1
+    bank_account_no: 1234567
+    bank_account_name: 信託銀行
+    bank_account_name_kana: シンタクギンコウ
+utxomanager:
+  grpc:
+    use_mock: true
+    target: localhost:12345
+  rds:
+    host: db-common
+    port: 5432
+    db_name: common
+    user: common
+    password: password
+    ssl_mode: disable
+    pool:
+      max_open_conn: 15
+      max_idle_conn: 1
+    log: false
+  redis:
+    host: redis-common
+    port: 6379
+    db: 1
+    password: password
+  jpys_currency_id: currencyjpys1
+issuer:
+  grpc:
+    use_mock: true
+    target: localhost:12346
+  unit_amount: 100000
+account:
+  grpc:
+    use_mock: true
+    target: localhost:12346
+asset_id: 2dcf5a8834645654911964ec3602426fd3b9b4017554d3f9c19403e7fc1411d3
+remittance:
+  grpc:
+    use_mock: true
+    target: localhost:12346
+admin_matchmaker:
+  grpc:
+    use_mock: true
+    target: localhost:12346
+identity:
+  grpc:
+    use_mock: true
+    target: localhost:12346
+force_withdrawal_fee_rate: 1
+force_withdrawal_fee_min: 100000
