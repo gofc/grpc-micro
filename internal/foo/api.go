@@ -1,6 +1,6 @@
-package api
+package foo
 
-import "github.com/gofc/grpc-micro/internal/api/services"
+import "github.com/gofc/grpc-micro/internal/foo/services"
 
 //Server of api services
 type Server struct {
@@ -9,6 +9,6 @@ type Server struct {
 
 func NewAPIServer() *Server {
 	return &Server{
-		services.NewFooService(),
+		services.NewFooService(Conf.Server),
 	}
 }

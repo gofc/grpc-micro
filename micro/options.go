@@ -2,7 +2,7 @@ package micro
 
 import (
 	"context"
-	"github.com/coreos/etcd/client"
+	"github.com/gofc/grpc-micro/micro/server"
 	"github.com/gofc/grpc-micro/pkg/registry"
 	"time"
 )

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/gofc/grpc-micro/internal/api"
+	"github.com/gofc/grpc-micro/internal/foo"
 	"github.com/gofc/grpc-micro/pkg/logger"
 	"github.com/gofc/grpc-micro/pkg/scode"
 	"github.com/gofc/grpc-micro/pkg/server"
@@ -20,7 +20,7 @@ import (
 
 var (
 	envName    = flag.String("env", "local", "environment name")
-	configPath = flag.String("conf", "etcd", "the folder path of config files")
+	configPath = flag.String("conf", "", "the folder path of config files")
 )
 
 func init() {
@@ -37,24 +37,22 @@ func init() {
 			filepath.Join(*configPath, *envName, code.Name()+".yml"),
 		)
 	}
-	if err := configor.Load(conf, filePath); err != nil {
+	if err := configor.Load(foo.Conf, filePath); err != nil {
 		panic(err)
 	}
 }
 
 func main() {
+	conf := foo.Conf
 
-	logger.InitLogger(&logger.Config{
-		Level:  "debug",
-		Format: "text",
-	})
+	logger.InitLogger(conf.Logger)
 	ctx := context.Background()
 	grpcServer := grpc.NewServer()
-	apiServer := api.NewAPIServer()
+	apiServer := foo.NewAPIServer()
 
 	pb.RegisterFooServiceServer(grpcServer, apiServer.FooService)
 
-	ts, err := net.Listen("tcp", *address)
+	ts, err := net.Listen("tcp", conf.Server.Address)
 	if err != nil {
 		logger.Error("failed to listen port", zap.Error(err))
 		return
@@ -73,7 +71,7 @@ func main() {
 	}()
 
 	logger.CInfo(ctx, "server start to listening", zap.String("address", ts.Addr().String()))
-	if err = server.Register(scode.FOO, ts.Addr().String(), *registryAddress); err != nil {
+	if err = server.Register(scode.FOO, ts.Addr().String(), conf.Registry.Address); err != nil {
 		logger.Error("failed to register service", zap.Error(err))
 		return
 	}

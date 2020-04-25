@@ -17,24 +17,24 @@ services:
       - etcd_master
     depends_on:
       - etcd_master
-  foo2:
-    image: alpine:3.2
-    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
-    volumes:
-      - ./build/bin/foo:/app/main:ro
-    links:
-      - etcd_master
-    depends_on:
-      - etcd_master
-  foo3:
-    image: alpine:3.2
-    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
-    volumes:
-      - ./build/bin/foo:/app/main:ro
-    links:
-      - etcd_master
-    depends_on:
-      - etcd_master
+#  foo2:
+#    image: alpine:3.2
+#    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
+#    volumes:
+#      - ./build/bin/foo:/app/main:ro
+#    links:
+#      - etcd_master
+#    depends_on:
+#      - etcd_master
+#  foo3:
+#    image: alpine:3.2
+#    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
+#    volumes:
+#      - ./build/bin/foo:/app/main:ro
+#    links:
+#      - etcd_master
+#    depends_on:
+#      - etcd_master
   client:
     image: alpine:3.2
     entrypoint: ["/app/main","--registry_address","etcd_master:2379"]

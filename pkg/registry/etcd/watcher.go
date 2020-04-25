@@ -5,8 +5,7 @@ import (
 	"errors"
 	"github.com/gofc/grpc-micro/pkg/registry"
 	"time"
-
-	"github.com/coreos/etcd/clientv3"
+	//"github.com/coreos/etcd/clientv3"
 )
 
 type etcdWatcher struct {

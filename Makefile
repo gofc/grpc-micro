@@ -30,20 +30,29 @@ gen-proto:
 
 build-app:
 	@mkdir -p build/bin
-	@./scripts/build-all.sh
+	$(call build-app-target,foo)
+	$(call build-app-target,cli)
+	$(call build-app-target,restgw)
 
 build-app-specify:
-	@echo "build $(name) service"
-	@GOOS=linux go build -i -o build/bin/$(name) cmd/$(name)/main.go
+	$(call build-app-target,$(name))
 
 build-image:
 	$(call build-docker-image,foo)
 	$(call build-docker-image,restgw)
 
-run-all: build-app
+run-all: build-app run-docker
+	@
+
+run-docker:
 	docker-compose down -v
 	docker-compose up
 
 define build-docker-image
 	docker build -t gofc/images:grpc-micro-$(1)-latest -f docker-files/$(1).Dockerfile .
+endef
+
+define build-app-target
+	@echo "build $(1) service"
+	@GOOS=linux go build -i -o build/bin/$(1) cmd/$(1)/main.go
 endef

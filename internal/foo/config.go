@@ -1,4 +1,4 @@
-package api
+package foo
 
 import (
 	"github.com/gofc/grpc-micro/pkg/logger"
