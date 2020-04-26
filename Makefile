@@ -26,25 +26,24 @@ gen-proto:
 			--go_out=plugins=grpc,paths=source_relative:. \
 			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
 			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbadmin/*.proto
+	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
+			--go_out=plugins=grpc,paths=source_relative:. \
+			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
+			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbinside/*.proto
 	@echo "proto generate done"
 
 build-app:
 	@mkdir -p build/bin
-	$(call build-app-target,foo)
-	$(call build-app-target,cli)
+	$(call build-app-target,user)
 	$(call build-app-target,restgw)
 
 build-app-specify:
 	$(call build-app-target,$(name))
 
 build-image:
-	$(call build-docker-image,foo)
 	$(call build-docker-image,restgw)
 
-run-all: build-app run-docker
-	@
-
-run-docker:
+run-all: build-app
 	docker-compose down -v
 	docker-compose up
 

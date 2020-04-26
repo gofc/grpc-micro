@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "github.com/gofc/grpc-micro/proto/v1/pb";
+
+import "google/api/annotations.proto";
+
+service UserService {
+    rpc Login (LoginRequest) returns (LoginResponse) {
+        option (google.api.http) = {
+          post: "/v1/users:login"
+        };
+    }
+
+    rpc Me (MeRequest) returns (MeResponse) {
+        option (google.api.http) = {
+          post: "/v1/users/me"
+        };
+    }
+}
+
+message Token {
+    string access_token = 1;
+    string refresh_token = 2;
+    int64 expires_in = 3;
+}
+
+message User {
+    string id = 1;
+    string name = 2;
+    string login_id = 3;
+    int64 balance = 4;
+}
+
+message LoginRequest {
+    string login_id = 1;
+    string login_pass = 2;
+}
+
+message LoginResponse {
+    Token token = 1;
+    User user = 2;
+}
+
+message MeRequest {
+}
+
+message MeResponse {
+    User user = 1;
+}

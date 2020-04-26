@@ -6,6 +6,8 @@ type ServiceCode string
 const (
 	//FOO test service(FooService)
 	FOO ServiceCode = "foo"
+	//User management service
+	User ServiceCode = "user"
 )
 
 //Name get service code

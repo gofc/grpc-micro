@@ -8,39 +8,36 @@ services:
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd_master:2379
     ports:
       - 12379:2379
-  foo1:
+  user:
     image: alpine:3.2
-    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
+    entrypoint: ["/app/main","--conf","/app/configs","--env","local"]
     volumes:
-      - ./build/bin/foo:/app/main:ro
+      - ./build/bin/user:/app/main:ro
     links:
       - etcd_master
     depends_on:
       - etcd_master
-#  foo2:
-#    image: alpine:3.2
-#    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
-#    volumes:
-#      - ./build/bin/foo:/app/main:ro
-#    links:
-#      - etcd_master
-#    depends_on:
-#      - etcd_master
-#  foo3:
-#    image: alpine:3.2
-#    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
-#    volumes:
-#      - ./build/bin/foo:/app/main:ro
-#    links:
-#      - etcd_master
-#    depends_on:
-#      - etcd_master
-  client:
+
+  grpcgw:
     image: alpine:3.2
-    entrypoint: ["/app/main","--registry_address","etcd_master:2379"]
+    entrypoint: ["/app/main","--conf","/app/configs","--env","local"]
     volumes:
-      - ./build/bin/cli:/app/main:ro
+      - ./build/bin/grpcgw:/app/main:ro
+      - ./configs/app/local/grpcgw.yml:/app/configs/local/grpcgw.yml:ro
+    ports:
+      - 50000:50000
     links:
       - etcd_master
     depends_on:
       - etcd_master
+  restgw:
+    image: alpine:3.2
+    entrypoint: ["/app/main","--port",":31000","--endpoint","grpcgw:50000"]
+    volumes:
+      - ./build/bin/restgw:/app/main:ro
+    ports:
+      - 31000:31000
+    links:
+      - grpcgw
+    depends_on:
+      - grpcgw

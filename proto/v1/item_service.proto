@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package pb;
+option go_package = "github.com/gofc/grpc-micro/proto/v1/pb";
+
+import "google/api/annotations.proto";
+
+service ItemService {
+    rpc ListItems (ListItemsRequest) returns (ListItemsResponse) {
+        option (google.api.http) = {
+          get: "/v1/items"
+        };
+    }
+
+    rpc GetItem (GetItemRequest) returns (GetItemResponse) {
+        option (google.api.http) = {
+          get: "/v1/items/{item_id}"
+        };
+    }
+}
+
+message Item {
+    string id = 1;
+    string name = 2;
+    int64 price = 3;
+}
+
+message ListItemsRequest {
+}
+
+message ListItemsResponse {
+    repeated Item items = 1;
+}
+
+message GetItemRequest {
+    string item_id = 1;
+}
+
+message GetItemResponse {
+    Item item = 1;
+}
+
