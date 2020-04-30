@@ -21,6 +21,8 @@ import (
 	"go.uber.org/zap"
 )
 
+const schema = "grpc-micro-registry"
+
 var (
 	prefix = "/grpc-micro/registry/"
 )

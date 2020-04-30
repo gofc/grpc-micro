@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	github.com/coreos/bbolt v0.0.0-00010101000000-000000000000 // indirect
-	github.com/coreos/etcd v3.3.20+incompatible // indirect
+	github.com/coreos/etcd v3.3.20+incompatible
 	github.com/coreos/go-semver v0.3.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20191104093116-d3cd4ed1dbcf // indirect
 	github.com/coreos/pkg v0.0.0-20180928190104-399ea9e2e55f // indirect
@@ -21,6 +21,7 @@ require (
 	github.com/jinzhu/configor v1.1.1
 	github.com/jonboulle/clockwork v0.1.0 // indirect
 	github.com/mitchellh/hashstructure v1.0.0
+	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.5.1 // indirect
 	github.com/soheilhy/cmux v0.1.4 // indirect
 	github.com/tmc/grpc-websocket-proxy v0.0.0-20200122045848-3419fae592fc // indirect
