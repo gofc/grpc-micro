@@ -1,0 +1,148 @@
+service:
+  golangci-lint-version: 1.32.2
+run:
+  deadline: 20m
+  skip-files:
+    - ".*\\.pb\\.go"
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - dogsled
+    - errcheck
+    - funlen
+    - gocognit
+    - gocritic
+    - gofmt
+    - goimports
+    - golint
+    - gosimple
+    - govet
+    - ineffassign
+    - interfacer
+    - lll
+    - maligned
+    - misspell
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+  fast: false
+
+linters-settings:
+  errcheck:
+    check-type-assertions: false
+    check-blank: false
+  govet:
+    check-shadowing: false
+  golint:
+    min-confidence: 0
+  gofmt:
+    simplify: true
+  maligned:
+    suggest-new: true
+  misspell:
+    locale: US
+  lll:
+    line-length: 160
+    tab-width: 1
+  funlen:
+    lines: 100
+    statements: 40
+  unused:
+    check-exported: false
+  unparam:
+    algo: cha
+    check-exported: false
+  gocritic:
+    enabled-checks:
+      - appendCombine
+      - argOrder
+      - assignOp
+      - badCond
+      - boolExprSimplify
+      - builtinShadow
+      - captLocal
+      - caseOrder
+      - codegenComment
+      - commentedOutCode
+      - commentedOutImport
+      - defaultCaseOrder
+      - deprecatedComment
+      - docStub
+      - dupArg
+      - dupBranchBody
+      - dupCase
+      - dupSubExpr
+      - elseif
+      - emptyFallthrough
+      - equalFold
+      - flagDeref
+      - flagName
+      - hexLiteral
+      - indexAlloc
+      - initClause
+      - methodExprCall
+      - nilValReturn
+      - octalLiteral
+      - offBy1
+      - rangeExprCopy
+      - regexpMust
+      - sloppyLen
+      - stringXbytes
+      - switchTrue
+      - typeAssertChain
+      - typeSwitchVar
+      - typeUnparen
+      - underef
+      - unlambda
+      - unnecessaryBlock
+      - unslice
+      - valSwap
+      - weakCond
+      - yodaStyleExpr
+
+      # Unused
+      # - appendAssign
+      # - commentFormatting
+      # - emptyStringTest
+      # - exitAfterDefer
+      # - ifElseChain
+      # - hugeParam
+      # - importShadow
+      # - nestingReduce
+      # - paramTypeCombine
+      # - ptrToRefParam
+      # - rangeValCopy
+      # - singleCaseSwitch
+      # - sloppyReassign
+      # - unlabelStmt
+      # - unnamedResult
+      # - wrapperFunc
+
+issues:
+  exclude:
+    - composite literal uses unkeyed fields
+    - should have a package comment, unless it's in another file for this package
+
+  exclude-rules:
+    - path: _test\.go$|^tests//
+      linters:
+        - errcheck
+        - maligned
+        - funlen
+        - lll
+    - linters:
+        - staticcheck
+      text: "SA1019:"
+
+  exclude-use-default: false
+  max-per-linter: 0
+  max-same-issues: 0

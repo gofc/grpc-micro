@@ -1,57 +1,22 @@
 GO_PATH=`go env GOPATH`
+current_dir = $(shell pwd)
 
 install:
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${GO_PATH}/bin v1.25.0
-	GO111MODULE=off go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-	GO111MODULE=off go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-	GO111MODULE=off go get -u github.com/golang/protobuf/protoc-gen-go
-	GO111MODULE=off go get -u golang.org/x/tools/cmd/stringer
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b ${GO_PATH}/bin v1.32.2
 
 deps:
-	go mod tidy
+	go mod download
 
-gen: gen-proto
-	@echo "generate all done"
+go-lint:
+	golangci-lint run --fix
+
+gen:
+	docker run -it --rm -v ${current_dir}:/workspace goforcloud/go-micro-proto-generator:1.0.0 make gen-proto
 
 gen-proto:
-	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-    		--go_out=plugins=grpc,paths=source_relative:. \
-    		--swagger_out=logtostderr=true,json_names_for_fields=true:. \
-    		--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbcomm/*.proto
-	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-			--go_out=plugins=grpc,paths=source_relative:. \
-			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
-			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/*.proto
-	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-			--go_out=plugins=grpc,paths=source_relative:. \
-			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
-			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbadmin/*.proto
-	@protoc -I. -I${GO_PATH}/src/github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis \
-			--go_out=plugins=grpc,paths=source_relative:. \
-			--swagger_out=logtostderr=true,json_names_for_fields=true:. \
-			--grpc-gateway_out=logtostderr=true,paths=source_relative:. ./proto/v1/pbinside/*.proto
-	@echo "proto generate done"
+	$(call gen-proto-target,./proto/*.proto)
 
-build-app:
-	@mkdir -p build/bin
-	$(call build-app-target,user)
-	$(call build-app-target,restgw)
-
-build-app-specify:
-	$(call build-app-target,$(name))
-
-build-image:
-	$(call build-docker-image,restgw)
-
-run-all: build-app
-	docker-compose down -v
-	docker-compose up
-
-define build-docker-image
-	docker build -t gofc/images:grpc-micro-$(1)-latest -f docker-files/$(1).Dockerfile .
-endef
-
-define build-app-target
-	@echo "build $(1) service"
-	@GOOS=linux go build -i -o build/bin/$(1) cmd/$(1)/main.go
+define gen-proto-target
+	protoc -I/usr/local/include -I. \
+		--go_out ./ --go_opt paths=source_relative $(1)
 endef
