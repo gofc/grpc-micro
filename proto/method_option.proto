@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package pbbase;
+option go_package = "github.com/gofc/grpc-micro/proto";
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.MethodOptions {
+  OptionBase option_base = 50001;
+}
+
+message OptionBase {
+  //認証不要
+  bool ignore_token_verify = 1;
+  //リクエスト内容をログに出力しない
+  bool ignore_logger_payload = 2;
+}

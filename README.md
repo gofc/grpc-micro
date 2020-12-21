@@ -1,1 +1,1 @@
-# grpc-micro
+# go-micro
