@@ -1,0 +1,44 @@
+name: master-pull-request
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  setup:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set up Go 1.x
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.15
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v2
+      - name: Use Cache
+        id: go-mod-cache
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}-${{ secrets.CACHE_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Download Modules
+        if: steps.go-mod-cache.outputs.cache-hit != 'true'
+        run: go mod download
+  lint:
+    needs: setup
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.32.2
+  test:
+    needs: setup
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: test
+        run: go test ./... -short
