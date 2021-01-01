@@ -7,6 +7,7 @@ require (
 	github.com/DataDog/datadog-go v4.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
+	github.com/jinzhu/configor v1.2.1 // indirect
 	github.com/nicksnyder/go-i18n/v2 v2.1.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/philhofer/fwd v1.1.1 // indirect
