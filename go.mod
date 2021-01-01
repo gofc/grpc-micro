@@ -1,13 +1,12 @@
 module github.com/gofc/grpc-micro
 
-go 1.13
+go 1.15
 
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/DataDog/datadog-go v4.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
-	github.com/jhump/protoreflect v1.7.1
 	github.com/nicksnyder/go-i18n/v2 v2.1.1
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/philhofer/fwd v1.1.1 // indirect

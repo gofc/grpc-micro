@@ -12,7 +12,6 @@ import (
 
 	"github.com/gofc/grpc-micro/kuberesolver"
 	"github.com/gofc/grpc-micro/logger"
-	"github.com/gofc/grpc-micro/methods"
 
 	"github.com/gofc/grpc-micro/code"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -94,8 +93,6 @@ func (s *Server) Start(ctx context.Context, opts ...Option) error {
 			}
 		}()
 	}
-
-	methods.Init(ctx, s.srv)
 
 	logger.Info(ctx, "grpc Server start listening",
 		zap.String("address", s.options.Address),
