@@ -172,10 +172,13 @@ func NewServer(opts ...Option) *Server {
 				return
 			}
 
-			switch v := err.(type) {
-			case code.Code:
+			if v, ok := err.(code.ErrorCode); ok {
 				err = v.GrpcError(codes.FailedPrecondition)
 				logger.ErrorNoStack(ctx, "ecode error", zap.String("error", v.Error()))
+				return
+			}
+
+			switch v := err.(type) {
 			case *code.AppError:
 				err = code.NewGRPC(codes.FailedPrecondition, err)
 				logger.ErrorNoStack(ctx, "application error", zap.String("error", v.Error()))

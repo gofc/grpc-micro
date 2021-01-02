@@ -15,6 +15,13 @@ import (
 // Code エラーコード
 type Code int
 
+//ErrorCode 错误代码
+type ErrorCode interface {
+	AppError(params ...interface{}) error
+	GrpcError(code codes.Code, params ...interface{}) error
+	Error() string
+}
+
 // Error Appエラーを作成する
 func (i Code) Error() string {
 	return i.String()
@@ -76,7 +83,6 @@ func FromMessage(msg *pbbase.ApplicationError) (*AppError, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return newError(Code(msg.Code), params), nil
 }
 
